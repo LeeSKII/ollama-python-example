@@ -1,5 +1,6 @@
 import json
 import ollama
+import asyncio
 
 def get_flight_times(departure: str, arrival: str) -> str:
     flights = {
@@ -15,54 +16,70 @@ def get_flight_times(departure: str, arrival: str) -> str:
     return json.dumps(flights.get(key, {'error': 'Flight not found'}))
   
 
-response = ollama.chat(
-  model='llama3.2',
-  messages=[
-    {
-    "role":'user',
-    'content':'What is the flight time from New York (nyc) to Los Angeles (LAX)?'
-    }
-  ],
- tools=[
+async def run(model:str):
+    messages = [
         {
-            'type': 'function',
-            'function': {
-            'name': 'get_flight_times',
-            'description': 'Get the flight times between two cities',
-            'parameters': {
-                'type': 'object',
-                'properties': {
-                'departure': {
-                    'type': 'string',
-                    'description': 'The departure city (airport code)',
-                },
-                'arrival': {
-                    'type': 'string',
-                    'description': 'The arrival city (airport code)',
+        "role":'user',
+        'content':'What is the flight time from New York (NYC) to Los Angeles (LAX)?'
+        }
+    ]
+    client = ollama.AsyncClient()
+    response = await client.chat(
+    model='llama3.2',
+    messages=messages,
+    tools=[
+            {
+                'type': 'function',
+                'function': {
+                'name': 'get_flight_times',
+                'description': 'Get the flight times between two cities',
+                'parameters': {
+                    'type': 'object',
+                    'properties': {
+                    'departure': {
+                        'type': 'string',
+                        'description': 'The departure city (airport code)',
                     },
+                    'arrival': {
+                        'type': 'string',
+                        'description': 'The arrival city (airport code)',
+                        },
+                    },
+                    'required': ['departure', 'arrival'],
                 },
-                'required': ['departure', 'arrival'],
+                },
             },
-            },
-        },
-    ],
-)
+        ],
+    )
 
-print(response)
+    print(response)
 
-# Check if the model decided to use the provided function
-if not response['message'].get('tool_calls'):
-    print("The model didn't use the function. Its response was:")
-    print(response['message']['content'])
+    # Check if the model decided to use the provided function
+    if not response['message'].get('tool_calls'):
+        print("The model didn't use the function. Its response was:")
+        print(response['message']['content'])
 
-  # Process function calls made by the model
-if response['message'].get('tool_calls'):
-    available_functions = {
-        'get_flight_times': get_flight_times,
-    }
-    for tool in response['message']['tool_calls']:
-        function_to_call = available_functions[tool['function']['name']]
-        function_response = function_to_call(tool['function']['arguments']['departure'], tool['function']['arguments']['arrival'])
-        # Add function response to the conversation
-        print(f"The model used the {tool['function']['name']} function with arguments {tool['function']['arguments']}. Its response was:")
-        print(function_response)
+    # Process function calls made by the model
+    if response['message'].get('tool_calls'):
+        available_functions = {
+            'get_flight_times': get_flight_times,
+        }
+        for tool in response['message']['tool_calls']:
+            function_to_call = available_functions[tool['function']['name']]
+            function_response = function_to_call(tool['function']['arguments']['departure'], tool['function']['arguments']['arrival'])
+            print(f"The model used the {tool['function']['name']} function with arguments {tool['function']['arguments']}. Its response was:")
+            print(function_response)
+            # Add function response to the conversation
+            messages.append(
+                {
+                    'role':'tool',
+                    'content':'function_response'
+                }
+            )
+        
+        # second API call:Get final response from the model
+        final_response = await client.chat(model=model,messages=messages)
+        print(f'final response:{final_response}')
+
+#asyncio.run(run('llama3.2'))
+asyncio.run(run('qwen2.5:7b'))
