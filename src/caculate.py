@@ -8,18 +8,23 @@ def add(first,second):
 def divide(first,second):
     return first/second
 
+def sqrt(number):
+    return number**0.5
 
 async def run(model:str):
     messages = [
             {
             "role":'user',
-            'content':'6/2的结果再加上100是多少?'
+            'content':'6/2的结果再加上100的结果开平方根是多少?'
             }
         ]
     client = ollama.AsyncClient()
     response = await client.chat(
         model=model,
         messages=messages,
+        options={
+            'temperature':0,
+        },
         tools=[
             {
                 'type': 'function',
@@ -63,6 +68,24 @@ async def run(model:str):
                     },
                 },
             },
+            {
+                'type': 'function',
+                'function': {
+                'name': 'sqrt',
+                'description': '获取一个数的平方根',
+                'parameters': {
+                    'type': 'object',
+                    'properties': {
+                    'number': {
+                        'type': 'number',
+                        'description': '数字',
+                    },
+                    
+                    },
+                    'required': ['number'],
+                    },
+                },
+            },
         ],
     )
 
@@ -72,11 +95,15 @@ async def run(model:str):
     if response['message'].get('tool_calls'):
         available_functions = {
             'add': add,
-            'divide':divide
+            'divide':divide,
+            'sqrt': sqrt,
         }
         for tool in response['message']['tool_calls']:
             function_to_call = available_functions[tool['function']['name']]
-            function_response = function_to_call(tool['function']['arguments']['first'], tool['function']['arguments']['second'])
+            if(tool['function']['name'] == 'add' or tool['function']['name'] == 'divide'):
+                function_response = function_to_call(tool['function']['arguments']['first'], tool['function']['arguments']['second'])
+            else:
+                function_response = function_to_call(tool['function']['arguments']['number'])
             print(f"The model used the {tool['function']['name']} function with arguments {tool['function']['arguments']}. Its response was:")
             print(function_response)
             # Add function response to the conversation
