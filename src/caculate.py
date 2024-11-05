@@ -3,13 +3,14 @@ import ollama
 import asyncio
 
 def add(first,second):
-    return first+second
+    # 需要返回json格式才能被ollama解析
+    return json.dumps({'result':first+second})
 
 def divide(first,second):
-    return first/second
+    return json.dumps({'result':first/second})
 
 def sqrt(number):
-    return number**0.5
+    return json.dumps({'result':round(number**0.5,2)})
 
 async def run(model:str):
     messages = [
@@ -110,11 +111,12 @@ async def run(model:str):
             messages.append(
                 {
                     'role':'tool',
-                    'content':'function_response'
+                    'content':function_response
                 }
             )
      # second API call:Get final response from the model
     final_response = await client.chat(model=model,messages=messages)
-    print(f'final response:{final_response}')        
+    print(f'final response:{final_response}')      
+    print(f'messages={messages}')  
     
 asyncio.run(run('qwen2.5:7b'))

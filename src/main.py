@@ -25,8 +25,13 @@ async def run(model:str):
     ]
     client = ollama.AsyncClient()
     response = await client.chat(
-    model='llama3.2',
+    model=model,
     messages=messages,
+    options={
+        'temperature':0,
+        # 'top_p':1,
+        # 'frequency_penalty':0,
+    },
     tools=[
             {
                 'type': 'function',
@@ -73,7 +78,7 @@ async def run(model:str):
             messages.append(
                 {
                     'role':'tool',
-                    'content':'function_response'
+                    'content':function_response
                 }
             )
         
@@ -81,5 +86,5 @@ async def run(model:str):
         final_response = await client.chat(model=model,messages=messages)
         print(f'final response:{final_response}')
 
-#asyncio.run(run('llama3.2'))
-asyncio.run(run('qwen2.5:7b'))
+asyncio.run(run('llama3.2'))
+# asyncio.run(run('qwen2.5:7b'))
