@@ -3,9 +3,9 @@ import ollama
 import asyncio
 
 def get_travel_info(user_name:str, session_id:str):
-    # return f'用户：{user_name}，session_id：{session_id}，最近一条出差信息为：2024年9月12日-2024年9月18日， 从上海出发，到北京参会。'
     if(user_name == 'Lee' and session_id == 'asdssad'):
-        return json.dumps({'result':f'用户：{user_name}，session_id：{session_id}，最近一条出差信息为：出差时间：2024年9月23日-2024年9月30日， 出发地：上海，目的地：北京，出差事由：参加全国钢铁冶金污染治理会议。'})
+        # 注意需要设置不编码的中文字符，否则大模型可能会解析成别的字符导致信息错误
+        return json.dumps({'result':f'用户：{user_name}，session_id：{session_id}，最近一条出差信息为：出差时间：2024年9月23日-2024年9月30日， 出发地：上海，目的地：北京，出差事由：参加全国钢铁冶金污染治理会议。'},ensure_ascii=False)
     else:
         return '您好，您没有权限访问该功能，请联系管理员。'
 
@@ -78,7 +78,7 @@ async def run(model:str):
         final_response = await client.chat(model=model,messages=messages)
         print(f'final response:{final_response}')
     print(response)
-    print(f'messages:{messages}')
+    # print(f'messages:{messages}')
     
 if __name__ == '__main__':
     asyncio.run(run('qwen2.5:7b'))
