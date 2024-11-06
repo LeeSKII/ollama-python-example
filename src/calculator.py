@@ -90,9 +90,10 @@ async def run(model:str):
         ],
     )
 
+    messages.append(response['message'])
     print(response)
 
-        # Process function calls made by the model
+    # Process function calls made by the model
     if response['message'].get('tool_calls'):
         available_functions = {
             'add': add,

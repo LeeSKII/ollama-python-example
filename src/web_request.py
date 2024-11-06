@@ -51,6 +51,9 @@ async def run(model:str):
             },
         ]
     )
+    
+    messages.append(response['message'])
+    
     # Check if the model decided to use the provided function
     if not response['message'].get('tool_calls'):
         print("The model didn't use the function. Its response was:")

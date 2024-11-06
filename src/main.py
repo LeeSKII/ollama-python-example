@@ -57,6 +57,7 @@ async def run(model:str):
         ],
     )
 
+    messages.append(response['message'])
     print(response)
 
     # Check if the model decided to use the provided function
@@ -85,6 +86,7 @@ async def run(model:str):
         # second API call:Get final response from the model
         final_response = await client.chat(model=model,messages=messages)
         print(f'final response:{final_response}')
+        print(f'messages={messages}')
 
 asyncio.run(run('llama3.2'))
 # asyncio.run(run('qwen2.5:7b'))
