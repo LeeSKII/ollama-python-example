@@ -21,7 +21,7 @@ for i, d in enumerate(documents):
   
   
   # an example prompt
-prompt = "请告知我一些关于dell电脑TX675的情况"
+prompt = "请告知我一些关于火箭运动的情况"
 
 # generate an embedding for the prompt and retrieve the most relevant doc
 response = ollama.embeddings(
@@ -33,6 +33,8 @@ results = collection.query(
   n_results=1
 )
 data = results['documents'][0][0]
+
+# TODO: 这里应该对data的distance进行判断，如果距离超过一定阈值，则不采用该数据
 
 print(f"The most relevant document to the prompt '{prompt}' is: {results}")
 
