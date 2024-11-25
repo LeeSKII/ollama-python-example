@@ -92,7 +92,24 @@ async def run(model:str):
 
     messages.append(response['message'])
     print(response)
-
+    
+    # response is
+    '''
+    {'model': 'qwen2.5:7b', 'created_at': '2024-11-25T00:42:08.8285035Z', 'message': {'role': 'assistant', 'content': '', 
+    'tool_calls': 
+    [
+        {'function': {'name': 'divide', 'arguments': {'first': 6, 'second': 2}}}, 
+        {'function': {'name': 'add', 'arguments': {'first': 3, 'second': 100}}}, 
+        {'function': {'name': 'sqrt', 'arguments': {'number': 103}}}
+    ]}, 'done_reason': 'stop', 'done': True, 'total_duration': 20170180200, 'load_duration': 15871877600, 'prompt_eval_count': 290, 'prompt_eval_duration': 666000000, 'eval_count': 73, 'eval_duration': 3338000000}
+    '''
+    # And you will see the LLM predicts the result of 6/2 and 100+3, that is not follower the logic of the question.
+    # Because we want to LLM use tools to get the middle result, and then use the tools again to get the final result.
+    # But LLM's response contains all tool used and LLM reasoning the middle result of tool function for parameter, which is not what we want.
+    # But how to fix this?
+    # First solution: ignore the result of reasoning in middle process, follow the tool use instructions.
+    # Second solution: In most LLM model supply, their only provide the one function call result, so you can avoid this problem.
+    
     # Process function calls made by the model
     if response['message'].get('tool_calls'):
         available_functions = {
@@ -120,4 +137,5 @@ async def run(model:str):
     print(f'final response:{final_response}')      
     print(f'messages={messages}')  
     
+#asyncio.run(run('qwen2.5:7b'))
 asyncio.run(run('qwen2.5:7b'))
